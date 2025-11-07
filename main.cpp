@@ -74,7 +74,7 @@ void spinLine (char side, char perm[12]) {
   }
 }
 
-void fullBackSpinllBackSpin () {
+void fullBackSpinBackSpin () {
     memcpy(face, pixels[0], sizeof(face));
     memcpy(pixels[0], pixels[1], sizeof(face));
     memcpy(pixels[1], pixels[2], sizeof(face));
@@ -94,8 +94,6 @@ void fullFrontSpin () {
     
     spinLateral(4, permLateralUp);
     spinLateral(5, permLateralDown);
-
-
 }
 
 void lr(char side[2], char* direction [2]) {
