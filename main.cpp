@@ -29,7 +29,7 @@ char pixels[6][9]={
 };
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
-char* line[52];
+char* line[72];
 char staticLine[12];
 char lateral[9];
 
@@ -68,7 +68,7 @@ static inline void savesLine () {
       line[k+24]= &pixels[permUD[i]][permULine[k]];
       line[k+36]= &pixels[permUD[i]][permDLine[k]];
       line[k+48]= &pixels[permFB[i]][pemrFLine[k]];
-      line[k+52]= &pixels[permFB[i]][permBLine[k]];
+      line[k+60]= &pixels[permFB[i]][permBLine[k]];
       k++;
     }
   }
@@ -101,6 +101,6 @@ void print () {
 
 int main () {
   savesLine();
-  spinLine(36, permDown);
+  spinLine(60, permDown);
   print();
 }
