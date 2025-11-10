@@ -50,7 +50,7 @@ char permULine[12] = {0, 1, 2, 0, 1, 2, 8, 7, 6, 0, 1, 2};
 char permDLine[12] = {6, 7, 8, 6, 7, 8, 2, 1, 0, 6, 7, 8};
 
 char permBLine[12] = {0, 1, 2, 2, 5, 8, 8, 7, 6, 6, 3, 0};
-char pemrFLine[12] = {6, 7, 8, 0, 3, 6, 8, 7, 6, 8, 5, 2};
+char permFLine[12] = {6, 7, 8, 0, 3, 6, 8, 7, 6, 8, 5, 2};
 
 static inline void spinLateral (char side, char perm[9]) {
   memcpy(lateral, pixels[side], sizeof(lateral));
@@ -67,7 +67,7 @@ static inline void savesLine () {
       line[k+12] = &pixels[i][j+2];
       line[k+24]= &pixels[permUD[i]][permULine[k]];
       line[k+36]= &pixels[permUD[i]][permDLine[k]];
-      line[k+48]= &pixels[permFB[i]][pemrFLine[k]];
+      line[k+48]= &pixels[permFB[i]][permFLine[k]];
       line[k+60]= &pixels[permFB[i]][permBLine[k]];
       k++;
     }
