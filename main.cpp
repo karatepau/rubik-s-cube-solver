@@ -2,7 +2,7 @@
 #include <cstring>
 
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
-char pixels[6][9]={
+alignas(64) char pixels[6][9]={
   {'g', 'g', 'g',
    'g', 'g', 'g',
    'g', 'g', 'g'},
@@ -34,25 +34,25 @@ char staticLine[12];
 char lateral[9];
 
 //Permutation of the lines that are going to rotate
-char permDown[12] = {3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2};
-char permUp[12] = {9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8};
+const char permDown[12] = {3, 4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2};
+const char permUp[12] = {9, 10, 11, 0, 1, 2, 3, 4, 5, 6, 7, 8};
 
 //Permutation of the laterals when they are rotated
-char permLateralDown[9] = {6, 3, 0, 7, 4, 1, 8, 5, 2};
-char permLateralUp[9] = {2, 5, 8, 1, 4, 7, 0, 3, 6};
+const char permLateralDown[9] = {6, 3, 0, 7, 4, 1, 8, 5, 2};
+const char permLateralUp[9] = {2, 5, 8, 1, 4, 7, 0, 3, 6};
 
 //List of indexes (of the faces) to follow in the loop for saving the line
-char permUD[4] = {0, 4, 2, 5};
-char permFB[4] = {1, 5, 3, 4};
+const char permUD[4] = {0, 4, 2, 5};
+const char permFB[4] = {1, 5, 3, 4};
 
 //Order of saving the pixels inside the line
-char permULine[12] = {0, 1, 2, 0, 1, 2, 8, 7, 6, 0, 1, 2};
-char permDLine[12] = {6, 7, 8, 6, 7, 8, 2, 1, 0, 6, 7, 8};
+const char permULine[12] = {0, 1, 2, 0, 1, 2, 8, 7, 6, 0, 1, 2};
+const char permDLine[12] = {6, 7, 8, 6, 7, 8, 2, 1, 0, 6, 7, 8};
 
-char permBLine[12] = {0, 1, 2, 2, 5, 8, 8, 7, 6, 6, 3, 0};
-char permFLine[12] = {6, 7, 8, 0, 3, 6, 8, 7, 6, 8, 5, 2};
+const char permBLine[12] = {0, 1, 2, 2, 5, 8, 8, 7, 6, 6, 3, 0};
+const char permFLine[12] = {6, 7, 8, 0, 3, 6, 8, 7, 6, 8, 5, 2};
 
-static inline void spinLateral (char side, char perm[9]) {
+static inline void spinLateral (char side, const char perm[9]) {
   memcpy(lateral, pixels[side], sizeof(lateral));
   for (char i = 0; i < 9; i++) {
     pixels[side][i]=lateral[perm[i]];
@@ -74,7 +74,7 @@ static inline void savesLine () {
   }
 }
 
-static inline void spinLine (char side, char perm[12]) {
+static inline void spinLine (char side, const char perm[12]) {
   for (char i = 0; i < 12; i++) {
     staticLine[i] = *line[i+side];
   }
@@ -83,6 +83,46 @@ static inline void spinLine (char side, char perm[12]) {
   }
 }
 
+static inline void move (char option) {
+  switch (option) {
+    case 1:
+      spinLine (0, permUp);
+      break;
+    case 2:
+      spinLine (0, permDown);
+      break;
+    case 3:
+      spinLine (12, permUp);
+      break;
+    case 4:
+      spinLine (12, permDown);
+      break;
+    case 5:
+      spinLine (24, permUp);
+      break;
+    case 6:
+      spinLine (24, permDown);
+      break;
+    case 7:
+      spinLine (36, permUp);
+      break;
+    case 8:
+      spinLine (36, permDown);
+      break;
+    case 9:
+      spinLine (48, permUp);
+      break;
+    case 10:
+      spinLine (48, permDown);
+      break;
+    case 11:
+      spinLine (60, permUp);
+      break;
+    case 12:
+      spinLine (60, permDown);
+      break;
+  }
+}
 
 void print () {
   char k = 0;
@@ -101,6 +141,6 @@ void print () {
 
 int main () {
   savesLine();
-  spinLine(60, permDown);
+  move(12);
   print();
 }
