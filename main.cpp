@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 
@@ -26,6 +27,21 @@ alignas(64) char pixels[6][9]={
   {'r', 'r', 'r',
    'r', 'r', 'r',
    'r', 'r', 'r'},
+};
+
+enum movements : uint8_t {  // 1 byte en vez de 4
+    LPrime = 0,
+    L,
+    R,
+    RPrime,
+    U,
+    UPrime,
+    DPrime,
+    D,
+    F,
+    FPrime,
+    BPrime,
+    B
 };
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
@@ -85,41 +101,53 @@ static inline void spinLine (char side, const char perm[12]) {
 
 static inline void move (char option) {
   switch (option) {
-    case 1:
+    case 0:
       spinLine (0, permUp);
+      spinLateral (4, permLateralUp);
+      break;
+    case 1:
+      spinLine (0, permDown);
+      spinLateral (4, permLateralDown);
       break;
     case 2:
-      spinLine (0, permDown);
+      spinLine (12, permUp);
+      spinLateral (5, permLateralDown);
       break;
     case 3:
-      spinLine (12, permUp);
+      spinLine (12, permDown);
+      spinLateral (5, permLateralUp);
       break;
     case 4:
-      spinLine (12, permDown);
+      spinLine (24, permUp);
+      spinLateral (1, permLateralDown);
       break;
     case 5:
-      spinLine (24, permUp);
+      spinLine (24, permDown);
+      spinLateral (1, permLateralUp);
       break;
     case 6:
-      spinLine (24, permDown);
+      spinLine (36, permUp);
+      spinLateral (3, permLateralUp);
       break;
     case 7:
-      spinLine (36, permUp);
+      spinLine (36, permDown);
+      spinLateral (3, permLateralDown);
       break;
     case 8:
-      spinLine (36, permDown);
+      spinLine (48, permUp);
+      spinLateral (0, permLateralDown);
       break;
     case 9:
-      spinLine (48, permUp);
+      spinLine (48, permDown);
+      spinLateral (0, permLateralUp);
       break;
     case 10:
-      spinLine (48, permDown);
+      spinLine (60, permUp);
+      spinLateral (2, permLateralUp);
       break;
     case 11:
-      spinLine (60, permUp);
-      break;
-    case 12:
       spinLine (60, permDown);
+      spinLateral (2, permLateralDown);
       break;
   }
 }
@@ -141,6 +169,6 @@ void print () {
 
 int main () {
   savesLine();
-  move(12);
+  move(B);
   print();
 }
