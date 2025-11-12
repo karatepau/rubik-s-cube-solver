@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <random>
 
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
@@ -152,6 +153,12 @@ static inline void move (char option) {
   }
 }
 
+void mix () {
+  static std::mt19937 rng(std::random_device{}());
+  for (char i = 0; i < 100; i++) {
+    move((uint64_t(rng()) * 12) >> 32); 
+  }
+}
 void print () {
   char k = 0;
   for (char i = 0; i < 6; i++) {
@@ -169,6 +176,6 @@ void print () {
 
 int main () {
   savesLine();
-  move(B);
+  mix();
   print();
 }
