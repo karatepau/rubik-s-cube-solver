@@ -47,6 +47,7 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
+char perfectLine[72];
 char staticLine[12];
 char lateral[9];
 
@@ -69,6 +70,10 @@ const char permDLine[12] = {6, 7, 8, 6, 7, 8, 2, 1, 0, 6, 7, 8};
 const char permBLine[12] = {0, 1, 2, 2, 5, 8, 8, 7, 6, 6, 3, 0};
 const char permFLine[12] = {6, 7, 8, 0, 3, 6, 8, 7, 6, 8, 5, 2};
 
+char reverse [12] = {1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10};
+
+void print();
+
 static inline void spinLateral (char side, const char perm[9]) {
   memcpy(lateral, pixels[side], sizeof(lateral));
   for (char i = 0; i < 9; i++) {
@@ -86,6 +91,12 @@ static inline void savesLine () {
       line[k+36]= &pixels[permUD[i]][permDLine[k]];
       line[k+48]= &pixels[permFB[i]][permFLine[k]];
       line[k+60]= &pixels[permFB[i]][permBLine[k]];
+      perfectLine[k] = pixels[i][j];
+      perfectLine[k+12] = pixels[i][j+2];
+      perfectLine[k+24]= pixels[permUD[i]][permULine[k]];
+      perfectLine[k+36]= pixels[permUD[i]][permDLine[k]];
+      perfectLine[k+48]= pixels[permFB[i]][permFLine[k]];
+      perfectLine[k+60]= pixels[permFB[i]][permBLine[k]];
       k++;
     }
   }
@@ -155,10 +166,39 @@ static inline void move (char option) {
 
 void mix () {
   static std::mt19937 rng(std::random_device{}());
-  for (char i = 0; i < 100; i++) {
-    move((uint64_t(rng()) * 12) >> 32); 
+  for (char i = 0; i < 5; i++) {
+    move((uint64_t(rng()) * 12) >> 32);
   }
 }
+
+float evaluate () {
+  float eval = 0;
+  float h = 0;
+  for (char i = 0; i < 72; i++) {
+    if (perfectLine[i] == *line[i]) {
+      eval++;
+    }
+  }
+  eval = (eval / 72.0f) * 100.0f;
+  return eval;
+}
+
+void solver (char depth) {
+  char k = 0;
+  float temp;
+  if (evaluate() > 99) {
+    printf("%d %.2f \n", k, evaluate());
+    return;
+  }
+  if (depth!=0) {
+    for(char i = 0; i < 12; i++) {
+      move(i);
+      solver(depth-1);
+      move(reverse[i]);
+    }
+  }
+}
+
 void print () {
   char k = 0;
   for (char i = 0; i < 6; i++) {
@@ -177,5 +217,5 @@ void print () {
 int main () {
   savesLine();
   mix();
-  print();
+  solver(6);
 }
