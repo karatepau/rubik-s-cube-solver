@@ -5,29 +5,29 @@
 
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
-  {'g', 'g', 'g',
+  {'y', 'r', 'r',
    'g', 'g', 'g',
    'g', 'g', 'g'},
 
-  {'w', 'w', 'w',
-   'w', 'w', 'w',
-   'w', 'w', 'w'},
+  {'r', 'w', 'w',
+   'r', 'w', 'w',
+   'r', 'w', 'w'},
 
   {'b', 'b', 'b',
    'b', 'b', 'b',
-   'b', 'b', 'b'},
+   'w', 'o', 'o'},
 
-  {'y', 'y', 'y',
+  {'o', 'o', 'o',
    'y', 'y', 'y',
    'y', 'y', 'y'},
 
-  {'o', 'o', 'o',
-   'o', 'o', 'o',
-   'o', 'o', 'o'},
+  {'g', 'g', 'g',
+   'o', 'o', 'w',
+   'o', 'o', 'w'},
 
-  {'r', 'r', 'r',
-   'r', 'r', 'r',
-   'r', 'r', 'r'},
+  {'b', 'b', 'b',
+   'y', 'r', 'r',
+   'y', 'r', 'r'},
 };
 
 enum movements : uint8_t {  // 1 byte en vez de 4
@@ -47,7 +47,6 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
-char perfectLine[72];
 char staticLine[12];
 char lateral[9];
 
@@ -65,10 +64,19 @@ const char permFB[4] = {1, 5, 3, 4};
 
 //Order of saving the pixels inside the line
 const char permULine[12] = {0, 1, 2, 0, 1, 2, 8, 7, 6, 0, 1, 2};
-const char permDLine[12] = {6, 7, 8, 6, 7, 8, 2, 1, 0, 6, 7, 8};
+const char permDLine[12] = {6, 7, 8, 0, 3, 6, 2, 1, 0, 8, 7, 6};
 
 const char permBLine[12] = {0, 1, 2, 2, 5, 8, 8, 7, 6, 6, 3, 0};
-const char permFLine[12] = {6, 7, 8, 0, 3, 6, 8, 7, 6, 8, 5, 2};
+const char permFLine[12] = {6, 7, 8, 0, 3, 6, 2, 1, 0, 8, 5, 2};
+
+char perfectLine[72] = {'g', 'g', 'g', 'w', 'w', 'w', 'b', 'b', 'b',
+                        'y', 'y', 'y', 'g', 'g', 'g', 'w', 'w', 'w',
+                        'b', 'b', 'b', 'y', 'y', 'y', 'g', 'g', 'g',
+                        'o', 'o', 'o', 'b', 'b', 'b', 'r', 'r', 'r',
+                        'g', 'g', 'g', 'o', 'o', 'o', 'b', 'b', 'b',
+                        'r', 'r', 'r', 'w', 'w', 'w', 'r', 'r', 'r',
+                        'y', 'y', 'y', 'o', 'o', 'o', 'w', 'w', 'w',
+                        'r', 'r', 'r', 'y', 'y', 'y', 'o', 'o', 'o'};
 
 char reverse [12] = {1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10};
 
@@ -94,12 +102,6 @@ static inline void savesLine () {
       line[k+36]= &pixels[permUD[i]][permDLine[k]];
       line[k+48]= &pixels[permFB[i]][permFLine[k]];
       line[k+60]= &pixels[permFB[i]][permBLine[k]];
-      perfectLine[k] = pixels[i][j];
-      perfectLine[k+12] = pixels[i][j+2];
-      perfectLine[k+24]= pixels[permUD[i]][permULine[k]];
-      perfectLine[k+36]= pixels[permUD[i]][permDLine[k]];
-      perfectLine[k+48]= pixels[permFB[i]][permFLine[k]];
-      perfectLine[k+60]= pixels[permFB[i]][permBLine[k]];
       k++;
     }
   }
@@ -264,7 +266,7 @@ void print () {
 
 int main () {
   savesLine();
-  mix(7);
+  //mix(7);
   print();
   if (solver(8)) printf("Solució trobada\n");
   path();
