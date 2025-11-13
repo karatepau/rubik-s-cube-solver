@@ -4,6 +4,33 @@
 #include <random>
 
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
+void customCube () {
+alignas(64) char pixels[6][9]={
+  {'o', 'g', 'g',
+   'o', 'g', 'g',
+   'o', 'g', 'g'},
+
+  {'w', 'w', 'w',
+   'w', 'w', 'w',
+   'b', 'o', 'o'},
+
+  {'r', 'r', 'r',
+   'b', 'b', 'b',
+   'b', 'b', 'b'},
+
+  {'g', 'r', 'r',
+   'y', 'y', 'y',
+   'y', 'y', 'y'},
+
+  {'o', 'o', 'y',
+   'o', 'o', 'y',
+   'b', 'b', 'y'},
+
+  {'w', 'r', 'r',
+   'w', 'r', 'r',
+   'w', 'g', 'g'},
+};
+}
 alignas(64) char pixels[6][9]={
   {'g', 'g', 'g',
    'g', 'g', 'g',
@@ -72,7 +99,7 @@ const char permFLine[12] = {6, 7, 8, 0, 3, 6, 8, 7, 6, 8, 5, 2};
 
 char reverse [12] = {1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10};
 
-char solution[50];
+char solution[30];
 char solutionIndex = 0;
 
 void print();
@@ -167,9 +194,9 @@ static inline void move (char option) {
   }
 }
 
-void mix () {
+void mix (char times_mixed) {
   static std::mt19937 rng(std::random_device{}());
-  for (char i = 0; i < 5; i++) {
+  for (char i = 0; i < times_mixed; i++) {
     move((uint64_t(rng()) * 12) >> 32);
   }
 }
@@ -264,7 +291,10 @@ void print () {
 
 int main () {
   savesLine();
-  mix();
+  //mix(7);
+  customCube();
+  print();
   if (solver(9)) printf("Solució trobada\n");
   path();
+  print();
 }
