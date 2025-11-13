@@ -4,33 +4,6 @@
 #include <random>
 
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
-void customCube () {
-alignas(64) char pixels[6][9]={
-  {'o', 'g', 'g',
-   'o', 'g', 'g',
-   'o', 'g', 'g'},
-
-  {'w', 'w', 'w',
-   'w', 'w', 'w',
-   'b', 'o', 'o'},
-
-  {'r', 'r', 'r',
-   'b', 'b', 'b',
-   'b', 'b', 'b'},
-
-  {'g', 'r', 'r',
-   'y', 'y', 'y',
-   'y', 'y', 'y'},
-
-  {'o', 'o', 'y',
-   'o', 'o', 'y',
-   'b', 'b', 'y'},
-
-  {'w', 'r', 'r',
-   'w', 'r', 'r',
-   'w', 'g', 'g'},
-};
-}
 alignas(64) char pixels[6][9]={
   {'g', 'g', 'g',
    'g', 'g', 'g',
@@ -291,10 +264,9 @@ void print () {
 
 int main () {
   savesLine();
-  //mix(7);
-  customCube();
+  mix(7);
   print();
-  if (solver(9)) printf("Solució trobada\n");
+  if (solver(8)) printf("Solució trobada\n");
   path();
   print();
 }
