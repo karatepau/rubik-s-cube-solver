@@ -5,29 +5,29 @@
 
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
-  {'y', 'r', 'r',
-   'g', 'g', 'g',
-   'g', 'g', 'g'},
+  {'o', 'g', 'w',
+   'o', 'g', 'w',
+   'y', 'g', 'r'},
 
-  {'r', 'w', 'w',
-   'r', 'w', 'w',
-   'r', 'w', 'w'},
+  {'o', 'w', 'b',
+   'o', 'w', 'b',
+   'g', 'r', 'r'},
 
-  {'b', 'b', 'b',
-   'b', 'b', 'b',
-   'w', 'o', 'o'},
+  {'b', 'b', 'o',
+   'b', 'b', 'y',
+   'w', 'r', 'r'},
 
-  {'o', 'o', 'o',
-   'y', 'y', 'y',
+  {'b', 'o', 'g',
+   'y', 'y', 'g',
+   'r', 'r', 'g'},
+
+  {'b', 'b', 'w',
+   'y', 'o', 'w',
+   'y', 'o', 'o'},
+
+  {'g', 'w', 'w',
+   'g', 'r', 'r',
    'y', 'y', 'y'},
-
-  {'g', 'g', 'g',
-   'o', 'o', 'w',
-   'o', 'o', 'w'},
-
-  {'b', 'b', 'b',
-   'y', 'r', 'r',
-   'y', 'r', 'r'},
 };
 
 enum movements : uint8_t {  // 1 byte en vez de 4
@@ -268,7 +268,7 @@ int main () {
   savesLine();
   //mix(7);
   print();
-  if (solver(8)) printf("Solució trobada\n");
+  if (solver(7)) printf("Solució trobada\n");
   path();
   print();
 }
