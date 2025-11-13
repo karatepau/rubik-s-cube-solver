@@ -73,8 +73,7 @@ const char permFLine[12] = {6, 7, 8, 0, 3, 6, 8, 7, 6, 8, 5, 2};
 char reverse [12] = {1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10};
 
 char solution[50];
-
-float threshold;
+char solutionIndex = 0;
 
 void print();
 
@@ -170,7 +169,7 @@ static inline void move (char option) {
 
 void mix () {
   static std::mt19937 rng(std::random_device{}());
-  for (char i = 0; i < 7; i++) {
+  for (char i = 0; i < 5; i++) {
     move((uint64_t(rng()) * 12) >> 32);
   }
 }
@@ -187,18 +186,64 @@ float evaluate () {
   return eval;
 }
 
-void solver (char depth) {
+bool solver (char depth) {
   char k = 0;
   if (evaluate() > 99) {
-    printf("%d %.2f \n", k, evaluate());
-    return;
+    return true;
   }
   if (depth!=0) {
     for(char i = 0; i < 12; i++) {
+      solution[solutionIndex] = i;
+      solutionIndex++;
       move(i);
-      solver(depth-1);
+      if (solver(depth-1)) return true;
       move(reverse[i]);
+      solutionIndex--;
     }
+  }
+  return false;
+}
+
+void path () {
+  for (char i = 0; i < solutionIndex; i++) {
+   switch (solution[i]) {
+  case 0:
+    printf("LPrime\n");
+    break;
+  case 1:
+    printf("L\n");
+    break;
+  case 2:
+    printf("R\n");
+    break;
+  case 3:
+    printf("RPrime\n");
+    break;
+  case 4:
+    printf("U\n");
+    break;
+  case 5:
+    printf("UPrime\n");
+    break;
+  case 6:
+    printf("DPrime\n");
+    break;
+  case 7:
+    printf("D\n");
+    break;
+  case 8:
+    printf("F\n");
+    break;
+  case 9:
+    printf("FPrime\n");
+    break;
+  case 10:
+    printf("BPrime\n");
+    break;
+  case 11:
+    printf("B\n");
+    break;
+  }
   }
 }
 
@@ -220,5 +265,6 @@ void print () {
 int main () {
   savesLine();
   mix();
-  solver(9);
+  if (solver(9)) printf("Solució trobada\n");
+  path();
 }
