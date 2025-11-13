@@ -75,7 +75,6 @@ char reverse [12] = {1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10};
 char solution[50];
 
 float threshold;
-float h;
 
 void print();
 
@@ -171,7 +170,7 @@ static inline void move (char option) {
 
 void mix () {
   static std::mt19937 rng(std::random_device{}());
-  for (char i = 0; i < 5; i++) {
+  for (char i = 0; i < 7; i++) {
     move((uint64_t(rng()) * 12) >> 32);
   }
 }
@@ -188,14 +187,8 @@ float evaluate () {
   return eval;
 }
 
-char sDepth = 6;
-
 void solver (char depth) {
-  h = 100.0f - evaluate();
   char k = 0;
-  float temp;
-  float f = sDepth - depth + h;
-  if (f > threshold) return;
   if (evaluate() > 99) {
     printf("%d %.2f \n", k, evaluate());
     return;
@@ -227,7 +220,5 @@ void print () {
 int main () {
   savesLine();
   mix();
-  h = 100.0f - evaluate();
-  threshold = h+3;
-  solver(sDepth);
+  solver(9);
 }
