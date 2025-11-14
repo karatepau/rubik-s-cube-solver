@@ -179,23 +179,13 @@ void mix (char times_mixed) {
 char crossEval () {
   char eval = 0;
   if (pixels[3][1]=='y' && pixels[0][7]=='g') eval = eval | 1;
-  if (pixels[3][3]=='y' && pixels[4][7]=='o') eval = eval | 2;
-  if (pixels[3][5]=='y' && pixels[5][7]=='r') eval = eval | 4;
+  if (pixels[3][3]=='y' && pixels[4][7]=='o') eval = eval | 4;
+  if (pixels[3][5]=='y' && pixels[5][7]=='r') eval = eval | 2;
   if (pixels[3][7]=='y' && pixels[2][1]=='b') eval = eval | 8;
 
   return eval;
 }
 
-char f2lEval () {
-    char eval = 0;
-    char tempEval = crossEval();
-    if (pixels[3][2] == 'y' && pixels[0][8] == 'g' && pixels[5][6] == 'r' && tempEval == 15) eval = eval | 1;
-    if (pixels[3][8] == 'y' && pixels[5][8] == 'r' && pixels[2][2] == 'b' && tempEval == 15) eval = eval | 2;
-    if (pixels[3][6] == 'y' && pixels[2][0] == 'b' && pixels[4][6] == 'o' && tempEval == 15) eval = eval | 4;
-    if (pixels[3][0] == 'y' && pixels[4][8] == 'o' && pixels[0][6] == 'g' && tempEval == 15) eval = eval | 8;
-
-    return eval;
-}
 
 bool solverCross(char depth, char pastEval, char goal, char lastMove = 255, char lastMove2 = 255) {
   char tempEval = crossEval();
@@ -223,8 +213,8 @@ bool solverCross(char depth, char pastEval, char goal, char lastMove = 255, char
 }
 
 bool solverCrossIterative(char goal) {
-  for (char depth = 1; depth <= 7; depth++) {
-    if (crossEval() == 15) return true;
+  for (char depth = 1; depth <= 8; depth++) {
+    if (crossEval() == goal) return true;
     printf("Buscando profundidad %d...\n", depth);
     if (solverCross(depth, 0, goal)) {
       printf("✓ Solución encontrada en profundidad %d\n", depth);
@@ -235,43 +225,6 @@ bool solverCrossIterative(char goal) {
   return false;
 }
 
-bool solverF2l(char depth, char pastEval, char goal, char decadency = 0, char lastMove = 255, char lastMove2 = 255) {
-  char tempEval = f2lEval();
-  if (tempEval == goal) return true;
-  if (tempEval==0) decadency++;
-  if (depth != 0 && decadency < 10) {
-    for(char i = 0; i < 12; i++) {
-      if (lastMove != 255 && i == reverse[lastMove]) continue;
-      
-      if (lastMove != 255 && lastMove2 != 255) {
-        if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
-      }
-      
-      solution[solutionIndex] = i;
-      solutionIndex++;
-      move(i);
-      
-      if (solverF2l(depth-1, tempEval, goal, decadency, i, lastMove)) return true;
-      
-      move(reverse[i]);
-      solutionIndex--;
-    }
-  }
-  return false;
-}
-
-bool solverF2lIterative(char goal) {
-  for (char depth = 1; depth <= 12; depth++) {
-    if (f2lEval()==15) return true;
-    printf("Buscando profundidad %d...\n", depth);
-    if (solverF2l(depth, 0, goal)) {
-      printf("✓ Solución encontrada en profundidad %d\n", depth);
-      return true;
-    }
-  }
-  printf("✗ No se encontró solución hasta profundidad 5\n");
-  return false;
-}
 
 void path () {
   for (char i = 0; i < solutionIndex; i++) {
@@ -333,20 +286,14 @@ void print () {
 
 int main () {
   savesLine();
-  mix(100);
+  mix(127);
   print();
   
   if (solverCrossIterative(1)) printf("Amarillo Verde OK\n");
-  if (solverCrossIterative(3)) printf("Amarillo Naranja OK\n");
-  if (solverCrossIterative(7)) printf("Amarillo Rojo OK\n");
+  if (solverCrossIterative(3)) printf("Amarillo Rojo OK\n");
+  if (solverCrossIterative(7)) printf("Amarillo Naranja OK\n");
   if (solverCrossIterative(15)) printf("Amarillo Azul OK\n");
   
-  if (solverF2lIterative(1)) printf("Verde Rojo OK\n");
-  if (solverF2lIterative(3)) printf("Rojo Azul OK\n");
-  if (solverF2lIterative(7)) printf("Azul Naranja OK\n");
-  if (solverF2lIterative(15)) printf("Naranja Verde OK\n");
- 
-
   path();
   print();
 }
