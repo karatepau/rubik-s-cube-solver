@@ -176,34 +176,56 @@ void mix (char times_mixed) {
   }
 }
 
-char f2lEval () {
+char crossEval () {
   char eval = 0;
-  for (char i = 1; i < 9; i += 2) {
-    if (pixels[3][i]=='y') eval++;
-  }
-  if (pixels[3][1]=='y' && pixels[0][7]=='g') eval += 2;
-  if (pixels[3][3]=='y' && pixels[5][7]=='r') eval += 2;
-  if (pixels[3][5]=='y' && pixels[2][1]=='b') eval += 2;
-  if (pixels[3][7]=='y' && pixels[4][7]=='o') eval += 2;
+  if (pixels[3][1]=='y' && pixels[0][7]=='g') eval = eval | 1;
+  if (pixels[3][3]=='y' && pixels[4][7]=='o') eval = eval | 2;
+  if (pixels[3][5]=='y' && pixels[5][7]=='r') eval = eval | 4;
+  if (pixels[3][7]=='y' && pixels[2][1]=='b') eval = eval | 8;
   return eval;
 }
 
-bool solver (char depth, char decadency, char pastEval) {
-  char tempEval = f2lEval();
-  if (tempEval == 12) {
-    return true;
+char f2lEval () {
+  if (crossEval==15) {
+    if ()
   }
-  if (decadency < 6 && depth != 0) {
+}
+
+bool solverCross(char depth, char pastEval, char goal, char lastMove = 255, char lastMove2 = 255) {
+  char tempEval = crossEval();
+  if (tempEval == goal) return true;
+  
+  if (depth != 0) {
     for(char i = 0; i < 12; i++) {
+      if (lastMove != 255 && i == reverse[lastMove]) continue;
+      
+      if (lastMove != 255 && lastMove2 != 255) {
+        if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
+      }
+      
       solution[solutionIndex] = i;
       solutionIndex++;
       move(i);
-      if (pastEval > tempEval) {if (solver(depth-1, decadency+1, tempEval)) return true;}
-      else if (solver(depth-1, 0, tempEval)) return true;
+      
+      if (solverCross(depth-1, tempEval, goal, i, lastMove)) return true;
+      
       move(reverse[i]);
       solutionIndex--;
     }
   }
+  return false;
+}
+
+bool solverCrossIterative(char goal) {
+  for (char depth = 1; depth <= 7; depth++) {
+    //solutionIndex = 0;
+    printf("Buscando profundidad %d...\n", depth);
+    if (solverCross(depth, 0, goal)) {
+      printf("✓ Solución encontrada en profundidad %d\n", depth);
+      return true;
+    }
+  }
+  printf("✗ No se encontró solución hasta profundidad 5\n");
   return false;
 }
 
@@ -269,7 +291,10 @@ int main () {
   savesLine();
   mix(100);
   print();
-  if (solver(8, 0, 0)) printf("F2L aplicat\n");
+  if (solverCrossIterative(1)) printf("Cruz amarilla OK\n");
+  if (solverCrossIterative(3)) printf("Cruz amarilla OK\n");
+  if (solverCrossIterative(7)) printf("Cruz amarilla OK\n");
+  if (solverCrossIterative(15)) printf("Cruz amarilla OK\n");
   path();
   print();
 }
