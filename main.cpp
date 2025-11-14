@@ -5,29 +5,29 @@
 
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
-  {'o', 'g', 'w',
-   'o', 'g', 'w',
-   'y', 'g', 'r'},
+  {'g', 'g', 'g',
+   'g', 'g', 'g',
+   'g', 'g', 'g'},
 
-  {'o', 'w', 'b',
-   'o', 'w', 'b',
-   'g', 'r', 'r'},
+  {'w', 'w', 'w',
+   'w', 'w', 'w',
+   'w', 'w', 'w'},
 
-  {'b', 'b', 'o',
-   'b', 'b', 'y',
-   'w', 'r', 'r'},
+  {'b', 'b', 'b',
+   'b', 'b', 'b',
+   'b', 'b', 'b'},
 
-  {'b', 'o', 'g',
-   'y', 'y', 'g',
-   'r', 'r', 'g'},
-
-  {'b', 'b', 'w',
-   'y', 'o', 'w',
-   'y', 'o', 'o'},
-
-  {'g', 'w', 'w',
-   'g', 'r', 'r',
+  {'y', 'y', 'y',
+   'y', 'y', 'y',
    'y', 'y', 'y'},
+
+  {'o', 'o', 'o',
+   'o', 'o', 'o',
+   'o', 'o', 'o'},
+
+  {'r', 'r', 'r',
+   'r', 'r', 'r',
+   'r', 'r', 'r'},
 };
 
 enum movements : uint8_t {  // 1 byte en vez de 4
@@ -176,29 +176,30 @@ void mix (char times_mixed) {
   }
 }
 
-float evaluate () {
-  float eval = 0;
-  float h = 0;
-  for (char i = 0; i < 72; i++) {
-    if (perfectLine[i] == *line[i]) {
-      eval++;
-    }
+char f2lEval () {
+  char eval = 0;
+  for (char i = 1; i < 9; i += 2) {
+    if (pixels[3][i]=='y') eval++;
   }
-  eval = (eval / 72.0f) * 100.0f;
+  if (pixels[3][1]=='y' && pixels[0][7]=='g') eval += 2;
+  if (pixels[3][3]=='y' && pixels[5][7]=='r') eval += 2;
+  if (pixels[3][5]=='y' && pixels[2][1]=='b') eval += 2;
+  if (pixels[3][7]=='y' && pixels[4][7]=='o') eval += 2;
   return eval;
 }
 
-bool solver (char depth) {
-  char k = 0;
-  if (evaluate() > 99) {
+bool solver (char depth, char decadency, char pastEval) {
+  char tempEval = f2lEval();
+  if (tempEval == 12) {
     return true;
   }
-  if (depth!=0) {
+  if (decadency < 6 && depth != 0) {
     for(char i = 0; i < 12; i++) {
       solution[solutionIndex] = i;
       solutionIndex++;
       move(i);
-      if (solver(depth-1)) return true;
+      if (pastEval > tempEval) {if (solver(depth-1, decadency+1, tempEval)) return true;}
+      else if (solver(depth-1, 0, tempEval)) return true;
       move(reverse[i]);
       solutionIndex--;
     }
@@ -266,9 +267,9 @@ void print () {
 
 int main () {
   savesLine();
-  //mix(7);
+  mix(100);
   print();
-  if (solver(7)) printf("Solució trobada\n");
+  if (solver(8, 0, 0)) printf("F2L aplicat\n");
   path();
   print();
 }
