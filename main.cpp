@@ -169,27 +169,35 @@ static inline void move (char option) {
   }
 }
 
-void mix (char times_mixed) {
+void mix (int times_mixed) {
   static std::mt19937 rng(std::random_device{}());
-  for (char i = 0; i < times_mixed; i++) {
+  for (int i = 0; i < times_mixed; i++) {
     move((uint64_t(rng()) * 12) >> 32);
   }
 }
 
-char crossEval () {
-  char eval = 0;
-  if (pixels[3][1]=='y' && pixels[0][7]=='g') eval = eval | 1;
-  if (pixels[3][3]=='y' && pixels[4][7]=='o') eval = eval | 4;
-  if (pixels[3][5]=='y' && pixels[5][7]=='r') eval = eval | 2;
-  if (pixels[3][7]=='y' && pixels[2][1]=='b') eval = eval | 8;
-
-  return eval;
+inline bool isMS(char c1, char c2) {
+  return ((c1=='g'||c1=='b')&&(c2=='r'||c2=='o'))||
+         ((c2=='g'||c2=='b')&&(c1=='r'||c1=='o'));
 }
 
+bool isG1() {
+  return pixels[0][7]!='w'&&pixels[0][7]!='y'&&
+         pixels[0][1]!='w'&&pixels[0][1]!='y'&&
+         pixels[2][7]!='w'&&pixels[2][7]!='y'&&
+         pixels[2][1]!='w'&&pixels[2][1]!='y'&&
+         pixels[4][7]!='w'&&pixels[4][7]!='y'&&
+         pixels[4][1]!='w'&&pixels[4][1]!='y'&&
+         pixels[5][7]!='w'&&pixels[5][7]!='y'&&
+         pixels[5][1]!='w'&&pixels[5][1]!='y'&&
+         !isMS(pixels[1][5],pixels[5][7])&&
+         !isMS(pixels[1][3],pixels[4][7])&&
+         !isMS(pixels[3][5],pixels[5][1])&&
+         !isMS(pixels[3][3],pixels[4][1]);
+}
 
-bool solverCross(char depth, char pastEval, char goal, char lastMove = 255, char lastMove2 = 255) {
-  char tempEval = crossEval();
-  if (tempEval == goal) return true;
+bool solverG1(char depth, char lastMove = 255, char lastMove2 = 255) {
+  if (isG1()) return true;
   
   if (depth != 0) {
     for(char i = 0; i < 12; i++) {
@@ -203,7 +211,7 @@ bool solverCross(char depth, char pastEval, char goal, char lastMove = 255, char
       solutionIndex++;
       move(i);
       
-      if (solverCross(depth-1, tempEval, goal, i, lastMove)) return true;
+      if (solverG1(depth-1, i, lastMove)) return true;
       
       move(reverse[i]);
       solutionIndex--;
@@ -212,11 +220,11 @@ bool solverCross(char depth, char pastEval, char goal, char lastMove = 255, char
   return false;
 }
 
-bool solverCrossIterative(char goal) {
+bool solverG1Iterative() {
   for (char depth = 1; depth <= 8; depth++) {
-    if (crossEval() == goal) return true;
+    if (isG1() == true) return true;
     printf("Buscando profundidad %d...\n", depth);
-    if (solverCross(depth, 0, goal)) {
+    if (solverG1(depth)) {
       printf("✓ Solución encontrada en profundidad %d\n", depth);
       return true;
     }
@@ -286,13 +294,10 @@ void print () {
 
 int main () {
   savesLine();
-  mix(127);
+  mix(100000);
   print();
   
-  if (solverCrossIterative(1)) printf("Amarillo Verde OK\n");
-  if (solverCrossIterative(3)) printf("Amarillo Rojo OK\n");
-  if (solverCrossIterative(7)) printf("Amarillo Naranja OK\n");
-  if (solverCrossIterative(15)) printf("Amarillo Azul OK\n");
+  if (solverG1Iterative()) printf("Kociemba OK\n");
   
   path();
   print();
