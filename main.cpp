@@ -118,51 +118,75 @@ static inline void spinLine (char side, const char perm[12]) {
 
 static inline void move (char option) {
   switch (option) {
-    case 0:
+    case 0: // LPrime
       spinLine (0, permUp);
       spinLateral (4, permLateralUp);
       break;
-    case 1:
+    case 1: // L
       spinLine (0, permDown);
       spinLateral (4, permLateralDown);
       break;
-    case 2:
+    case 2: // R
       spinLine (12, permUp);
       spinLateral (5, permLateralDown);
       break;
-    case 3:
+    case 3: // RPrime
       spinLine (12, permDown);
       spinLateral (5, permLateralUp);
       break;
-    case 4:
+    case 4: // U
       spinLine (24, permUp);
       spinLateral (1, permLateralDown);
       break;
-    case 5:
+    case 5: // UPrime
       spinLine (24, permDown);
       spinLateral (1, permLateralUp);
       break;
-    case 6:
+    case 6: // DPrime
       spinLine (36, permUp);
       spinLateral (3, permLateralUp);
       break;
-    case 7:
+    case 7: // D
       spinLine (36, permDown);
       spinLateral (3, permLateralDown);
       break;
-    case 8:
+    case 8: // F
       spinLine (48, permUp);
       spinLateral (0, permLateralDown);
       break;
-    case 9:
+    case 9: // FPrime
       spinLine (48, permDown);
       spinLateral (0, permLateralUp);
       break;
-    case 10:
+    case 10: // BPrime
       spinLine (60, permUp);
       spinLateral (2, permLateralUp);
       break;
-    case 11:
+    case 11: // B
+      spinLine (60, permDown);
+      spinLateral (2, permLateralDown);
+      break;
+    case 12:  // R2
+      spinLine (12, permUp);
+      spinLateral (5, permLateralDown);
+      spinLine (12, permUp);
+      spinLateral (5, permLateralDown);
+      break;
+    case 13:  // L2
+      spinLine (0, permDown);
+      spinLateral (4, permLateralDown);
+      spinLine (0, permDown);
+      spinLateral (4, permLateralDown);
+      break;
+    case 14:  // F2
+      spinLine (48, permUp);
+      spinLateral (0, permLateralDown);
+      spinLine (48, permUp);
+      spinLateral (0, permLateralDown);
+      break;
+    case 15:  // B2
+      spinLine (60, permDown);
+      spinLateral (2, permLateralDown);
       spinLine (60, permDown);
       spinLateral (2, permLateralDown);
       break;
@@ -200,7 +224,7 @@ bool solverG1(char depth, char lastMove = 255, char lastMove2 = 255) {
   if (isG1()) return true;
   
   if (depth != 0) {
-    for(char i = 0; i < 12; i++) {
+    for(char i = 0; i < 16; i++) {
       if (lastMove != 255 && i == reverse[lastMove]) continue;
       
       if (lastMove != 255 && lastMove2 != 255) {
@@ -272,6 +296,18 @@ void path () {
     break;
   case 11:
     printf("B\n");
+    break;
+  case 12:
+    printf("R2\n");
+    break;
+  case 13:
+    printf("L2\n");
+    break;
+  case 14:
+    printf("F2\n");
+    break;
+  case 15:
+    printf("B2\n");
     break;
   }
   }
