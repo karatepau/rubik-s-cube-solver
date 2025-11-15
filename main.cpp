@@ -78,7 +78,7 @@ char perfectLine[72] = {'g', 'g', 'g', 'w', 'w', 'w', 'b', 'b', 'b',
                         'y', 'y', 'y', 'o', 'o', 'o', 'w', 'w', 'w',
                         'r', 'r', 'r', 'y', 'y', 'y', 'o', 'o', 'o'};
 
-char reverse [12] = {1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10};
+char reverse [16] = {1, 0, 3, 2, 5, 4, 7, 6, 9, 8, 11, 10, 12, 13, 14, 15};
 
 char solution[30];
 char solutionIndex = 0;
