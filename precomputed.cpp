@@ -2,7 +2,7 @@
 #include <cstdio>
 #include <cstring>
 #include <random>
-
+#include "xxhash.h"
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
   {'g', 'g', 'g',
@@ -47,6 +47,7 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
+uint8_t* shortLine[45];
 char staticLine[12];
 char lateral[9];
 
@@ -98,10 +99,17 @@ static inline void savesLine () {
     for (char j = 0; j < 7; j += 3) {
       line[k] = &pixels[i][j];
       line[k+12] = &pixels[i][j+2];
-      line[k+24]= &pixels[permUD[i]][permULine[k]];
-      line[k+36]= &pixels[permUD[i]][permDLine[k]];
-      line[k+48]= &pixels[permFB[i]][permFLine[k]];
-      line[k+60]= &pixels[permFB[i]][permBLine[k]];
+      line[k+24] = &pixels[permUD[i]][permULine[k]];
+      line[k+36] = &pixels[permUD[i]][permDLine[k]];
+      line[k+48] = &pixels[permFB[i]][permFLine[k]];
+      line[k+60] = &pixels[permFB[i]][permBLine[k]];
+      k++;
+    }
+  }
+  k=0;
+  for (char i = 0; i < 5; i++) {
+    for (char j = 0; j < 9; j++) {
+      shortLine[k] = &pixels[i][j];
       k++;
     }
   }
@@ -202,10 +210,12 @@ void mix (int times_mixed) {
 
 long long counter = 0;
 
+__uint128_t* hashes = new __uint128_t[47380816];
+uint8_t* moves = new uint8_t[47380816];
+
 void search(char depth, char lastMove = 255, char lastMove2 = 255) {
   if (depth == 0) {
-    counter++;
-    return;  // No return true, només compta!
+    return;
   }
   
   char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
@@ -217,6 +227,12 @@ void search(char depth, char lastMove = 255, char lastMove2 = 255) {
     }
     
     move(i);
+    uint8_t buffer[45];
+    for (int i = 0; i < 45; i++) buffer[i] = *shortLine[i];
+    XXH128_hash_t h = XXH3_128bits(buffer, 45);
+    hashes[counter] = (__uint128_t(h.high64) << 64) | h.low64;
+    moves[counter] = reverse[i];
+    counter++;
     search(depth-1, i, lastMove);
     move(reverse[i]);
   }
