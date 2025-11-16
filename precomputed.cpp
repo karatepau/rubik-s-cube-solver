@@ -2,7 +2,11 @@
 #include <cstdio>
 #include <cstring>
 #include <random>
+#include <fstream>
+#define XXH_INLINE_ALL
 #include "xxhash.h"
+
+
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
   {'g', 'g', 'g',
@@ -47,7 +51,7 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
-uint8_t* shortLine[45];
+char* shortLine[45];
 char staticLine[12];
 char lateral[9];
 
@@ -293,6 +297,26 @@ void path () {
   }
 }
 
+void saveToTxt () {
+  std::ofstream f("precalculatedPositions.txt");
+
+  // Primer array (hashes)
+  for (long long i = 0; i < counter; i++) {
+  // __uint128_t no té operadors de sortida per defecte
+    unsigned long long high = (unsigned long long)(hashes[i] >> 64);
+    unsigned long long low  = (unsigned long long)(hashes[i] & 0xFFFFFFFFFFFFFFFFULL);
+    f << high << "_" << low << " "; // separo alta i baixa part
+  }
+  f << "\n";
+
+    // Segon array (moves)
+  for (long long i = 0; i < counter; i++) {
+    f << (unsigned int)moves[i] << " ";
+  }
+  f << "\n";
+  f.close();
+}
+
 void print () {
   char k = 0;
   for (char i = 0; i < 6; i++) {
@@ -312,6 +336,5 @@ int main () {
   savesLine();
   search(9);
   printf("Total camins explorats: %lld\n", counter);
-  path();
-  print();
+  saveToTxt();  
 }
