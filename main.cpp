@@ -50,7 +50,7 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
-char* shortLine[54];
+char* shortLine[45];
 char staticLine[12];
 char lateral[9];
 
@@ -296,20 +296,24 @@ bool solverG1Iterative() {
 bool solverG2Iterative();
 
 bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
+  char equal = 0;
+  for (char i = 0; i < 72; i++) {
+    if (perfectLine[i]==*line[i]) equal ++;
+  }
+  if (equal == 72) return true;
   char buffer[45];
-  memcpy (buffer, *shortLine, sizeof(buffer));
-  XXH128_hash_t h = XXH3_128bits(buffer, 45); // 128-bit hash
+  for (int i = 0; i < 45; ++i) buffer[i] = *shortLine[i];
+  XXH128_hash_t h = XXH3_128bits(buffer, 45);
   __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
-  for (char i = 0; i < counter; i++) {
+  for (int i = 0; i < counter; i++) {
     if (hash == hashes[i]) {
+      printf("COINCIDENCIA!\n");
       move(moves[i]);
       solution[solutionIndex] = moves[i];
       solutionIndex++;
-      solverG2Iterative();
-      return false;
+      return solverG2Iterative();
     }
   }
-  if ()
   char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
   if (depth != 0) {
     for(char i : legalMoves) {
@@ -323,7 +327,7 @@ bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
       solutionIndex++;
       move(i);
 
-      if (solverG1(depth-1, i, lastMove)) return true;
+      if (solverG2(depth-1, i, lastMove)) return true;
 
       move(reverse[i]);
       solutionIndex--;
@@ -334,14 +338,13 @@ bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
 
 bool solverG2Iterative() {
   for (char depth = 1; depth <= 9; depth++) {
-    if (isG1() == true) return true;
     printf("Buscando profundidad %d...\n", depth);
-    if (solverG1(depth)) {
+    if (solverG2(depth)) {
       printf("✓ Solución encontrada en profundidad %d\n", depth);
       return true;
     }
   }
-  printf("✗ No se encontró solución hasta profundidad 5\n");
+  printf("✗ No se encontró solución hasta profundidad 9\n");
   return false;
 }
 
@@ -418,9 +421,10 @@ void print () {
 int main () {
   savesLine();
   loadFromBinary();
-  mix(100000);
+  mix(10);
   print();
   if (solverG1Iterative()) printf("Kociemba OK\n");
+  print();
   if (solverG2Iterative()) printf("All OK\n");
   path();
   print();
