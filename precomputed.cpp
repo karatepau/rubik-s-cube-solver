@@ -231,7 +231,7 @@ void search(char depth, char lastMove = 255, char lastMove2 = 255) {
     }
     
     move(i);
-    uint8_t buffer[45];
+    char buffer[45];
     for (int i = 0; i < 45; i++) buffer[i] = *shortLine[i];
     XXH128_hash_t h = XXH3_128bits(buffer, 45);
     hashes[counter] = (__uint128_t(h.high64) << 64) | h.low64;
