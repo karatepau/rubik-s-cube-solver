@@ -105,6 +105,13 @@ static inline void savesLine () {
       k++;
     }
   }
+  k=0;
+  for (char i = 0; i < 5; i++) {
+    for (char j = 0; j < 9; j++) {
+      shortLine[k] = &pixels[i][j];
+      k++;
+    }
+  }
 }
 
 static inline void spinLine (char side, const char perm[12]) {
