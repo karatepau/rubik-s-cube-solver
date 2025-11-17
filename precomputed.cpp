@@ -300,21 +300,38 @@ void path () {
 void saveToTxt () {
   std::ofstream f("precalculatedPositions.txt");
 
-  // Primer array (hashes)
   for (long long i = 0; i < counter; i++) {
-  // __uint128_t no té operadors de sortida per defecte
     unsigned long long high = (unsigned long long)(hashes[i] >> 64);
     unsigned long long low  = (unsigned long long)(hashes[i] & 0xFFFFFFFFFFFFFFFFULL);
-    f << high << "_" << low << " "; // separo alta i baixa part
+    f << high << "_" << low << " ";
   }
   f << "\n";
 
-    // Segon array (moves)
   for (long long i = 0; i < counter; i++) {
     f << (unsigned int)moves[i] << " ";
   }
   f << "\n";
   f.close();
+}
+
+void saveToBinary() {
+    std::ofstream f("precalculatedPositions.bin", std::ios::binary);
+
+    if (!f) {
+        printf("Error obrint el fitxer!\n");
+        return;
+    }
+
+    // Saves counter (8 bytes)
+    f.write(reinterpret_cast<char*>(&counter), sizeof(counter));
+
+    // Saves all hashess (counter × 16 bytes)
+    f.write(reinterpret_cast<char*>(hashes), counter * sizeof(__uint128_t));
+
+    // 3) Saves all moves (counter × 1 byte)
+    f.write(reinterpret_cast<char*>(moves), counter * sizeof(uint8_t));
+
+    f.close();
 }
 
 void print () {
@@ -336,5 +353,6 @@ int main () {
   savesLine();
   search(9);
   printf("Total camins explorats: %lld\n", counter);
-  saveToTxt();  
+  saveToBinary();
+  //saveToTxt();  
 }
