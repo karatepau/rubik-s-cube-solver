@@ -8,29 +8,29 @@
 
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
-  {'g', 'g', 'g',
-   'g', 'g', 'g',
-   'g', 'g', 'g'},
+  {'g', 'g', 'b',
+   'g', 'g', 'y',
+   'r', 'r', 'y'},
 
-  {'w', 'w', 'w',
-   'w', 'w', 'w',
-   'w', 'w', 'w'},
+  {'g', 'r', 'r',
+   'w', 'w', 'b',
+   'w', 'w', 'y'},
 
-  {'b', 'b', 'b',
-   'b', 'b', 'b',
-   'b', 'b', 'b'},
+  {'y', 'r', 'w',
+   'o', 'b', 'w',
+   'r', 'b', 'w'},
 
-  {'y', 'y', 'y',
-   'y', 'y', 'y',
-   'y', 'y', 'y'},
+  {'y', 'y', 'g',
+   'y', 'y', 'g',
+   'o', 'w', 'o'},
 
-  {'o', 'o', 'o',
-   'o', 'o', 'o',
-   'o', 'o', 'o'},
+  {'w', 'o', 'o',
+   'y', 'o', 'o',
+   'b', 'g', 'g'},
 
-  {'r', 'r', 'r',
-   'r', 'r', 'r',
-   'r', 'r', 'r'},
+  {'r', 'o', 'b',
+   'b', 'r', 'b',
+   'o', 'r', 'b'},
 };
 
 enum movements : uint8_t {  // 1 byte en vez de 4
@@ -235,7 +235,7 @@ void mix (int times_mixed) {
     move((uint64_t(rng()) * 12) >> 32);
   }
 }
-
+/*
 inline bool isMS(char c1, char c2) {
   return ((c1=='g'||c1=='b')&&(c2=='r'||c2=='o'))||
          ((c2=='g'||c2=='b')&&(c1=='r'||c1=='o'));
@@ -254,6 +254,100 @@ bool isG1() {
          !isMS(pixels[1][3],pixels[4][7])&&
          !isMS(pixels[3][5],pixels[5][1])&&
          !isMS(pixels[3][3],pixels[4][1]);
+}
+*/
+
+// Verifica si una aresta està ben orientada
+// Una aresta està ben orientada si els colors w/y estan a les cares U/D
+bool isEdgeOriented(char face1, char pos1, char face2, char pos2) {
+    char color1 = pixels[face1][pos1];
+    char color2 = pixels[face2][pos2];
+    
+    // Si l'aresta toca U o D, ha de tenir w o y a la cara U/D
+    if (face1 == 1 || face1 == 3) {  // face1 és U o D
+        return (color1 == 'w' || color1 == 'y');
+    }
+    if (face2 == 1 || face2 == 3) {  // face2 és U o D
+        return (color2 == 'w' || color2 == 'y');
+    }
+    
+    // Si l'aresta no toca U ni D, no ha de tenir w ni y
+    return (color1 != 'w' && color1 != 'y' && 
+            color2 != 'w' && color2 != 'y');
+}
+
+// Verifica si una cantonada està ben orientada
+// Les cantonades estan ben orientades si el sticker w/y mira cap a U/D
+bool isCornerOriented(char faceUD, char posUD) {
+    char color = pixels[faceUD][posUD];
+    return (color == 'w' || color == 'y');
+}
+
+// Verifica si les 4 arestes del middle slice estan al seu lloc
+// En G1, les arestes FR, FL, BR, BL han d'estar entre les capes U i D
+bool areMiddleEdgesInSlice() {
+    // Compta quantes arestes de middle slice estan al middle slice
+    int count = 0;
+    
+    // Aresta Front-Right (entre F i R, posició middle)
+    char fr1 = pixels[0][5];  // Front middle-right
+    char fr2 = pixels[5][3];  // Right middle-left
+    if ((fr1 == 'g' && fr2 == 'r') || (fr1 == 'r' && fr2 == 'g')) count++;
+    
+    // Aresta Front-Left (entre F i L, posició middle)
+    char fl1 = pixels[0][3];  // Front middle-left
+    char fl2 = pixels[4][5];  // Left middle-right
+    if ((fl1 == 'g' && fl2 == 'o') || (fl1 == 'o' && fl2 == 'g')) count++;
+    
+    // Aresta Back-Right (entre B i R, posició middle)
+    char br1 = pixels[2][3];  // Back middle-left
+    char br2 = pixels[5][5];  // Right middle-right
+    if ((br1 == 'b' && br2 == 'r') || (br1 == 'r' && br2 == 'b')) count++;
+    
+    // Aresta Back-Left (entre B i L, posició middle)
+    char bl1 = pixels[2][5];  // Back middle-right
+    char bl2 = pixels[4][3];  // Left middle-left
+    if ((bl1 == 'b' && bl2 == 'o') || (bl1 == 'o' && bl2 == 'b')) count++;
+    
+    return count == 4;
+}
+
+bool isG1() {
+    // 1. ORIENTACIÓ DE LES 12 ARESTES
+    
+    // Arestes que toquen U (cara 1)
+    if (!isEdgeOriented(1, 1, 0, 1)) return false;  // U-F
+    if (!isEdgeOriented(1, 3, 4, 1)) return false;  // U-L
+    if (!isEdgeOriented(1, 5, 5, 1)) return false;  // U-R
+    if (!isEdgeOriented(1, 7, 2, 1)) return false;  // U-B
+    
+    // Arestes que toquen D (cara 3)
+    if (!isEdgeOriented(3, 1, 0, 7)) return false;  // D-F
+    if (!isEdgeOriented(3, 3, 4, 7)) return false;  // D-L
+    if (!isEdgeOriented(3, 5, 5, 7)) return false;  // D-R
+    if (!isEdgeOriented(3, 7, 2, 7)) return false;  // D-B
+    
+    // Arestes del middle slice (no toquen U ni D)
+    if (!isEdgeOriented(0, 3, 4, 5)) return false;  // F-L
+    if (!isEdgeOriented(0, 5, 5, 3)) return false;  // F-R
+    if (!isEdgeOriented(2, 3, 5, 5)) return false;  // B-R
+    if (!isEdgeOriented(2, 5, 4, 3)) return false;  // B-L
+    
+    // 2. ORIENTACIÓ DE LES 8 CANTONADES
+    // Les cantonades han de tenir w/y a les cares U/D
+    if (!isCornerOriented(1, 0)) return false;  // ULF
+    if (!isCornerOriented(1, 2)) return false;  // URF
+    if (!isCornerOriented(1, 6)) return false;  // ULB
+    if (!isCornerOriented(1, 8)) return false;  // URB
+    if (!isCornerOriented(3, 0)) return false;  // DLF
+    if (!isCornerOriented(3, 2)) return false;  // DRF
+    if (!isCornerOriented(3, 6)) return false;  // DLB
+    if (!isCornerOriented(3, 8)) return false;  // DRB
+    
+    // 3. LES 4 ARESTES DEL MIDDLE SLICE HAN D'ESTAR AL SLICE
+    if (!areMiddleEdgesInSlice()) return false;
+    
+    return true;
 }
 
 bool solverG1(char depth, char lastMove = 255, char lastMove2 = 255) {
@@ -421,11 +515,12 @@ void print () {
 int main () {
   savesLine();
   loadFromBinary();
-  mix(10);
+  //mix(6);
   print();
   if (solverG1Iterative()) printf("Kociemba OK\n");
+  path();
   print();
-  if (solverG2Iterative()) printf("All OK\n");
+  if (solverG2(8)) printf("All OK\n");
   path();
   print();
 }
