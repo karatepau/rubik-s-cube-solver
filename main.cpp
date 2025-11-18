@@ -3,7 +3,7 @@
 #include <cstring>
 #include <random>
 #include <fstream>
-#include <unordered_map>
+#include <unordered_set>
 #define XXH_INLINE_ALL
 #include "xxhash.h"
 
@@ -115,7 +115,6 @@ static inline void savesLine () {
   for (char i = 0; i < 5; i++) {
     for (char j = 0; j < 9; j++) {
       shortLine[k] = &pixels[i][j];
-      staticShortLine[k] = pixels[i][j];
       k++;
     }
   }
@@ -236,6 +235,12 @@ void mix (int times_mixed) {
   static std::mt19937 rng(std::random_device{}());
   for (int i = 0; i < times_mixed; i++) {
     move((uint64_t(rng()) * 12) >> 32);
+  }
+}
+
+void staticSave () {
+  for (size_t i = 0; i < 45; i++) {
+    staticShortLine[i] = *shortLine[i];
   }
 }
 
@@ -438,21 +443,86 @@ void searchG2(char depth, char lastMove = 255, char lastMove2 = 255) {
   }
 }
 
-void finish () {
-    std::unordered_map<uint64_t, size_t> m; // valor -> index
-    m.reserve(counter);
+__uint128_t objective;
+int objectiveIndex;
+void findMiddle () {
+  std::unordered_set<__uint128_t> s;
+  s.reserve(counter);
 
-    for (size_t j = 0; j < counter; j++)
-        m[onlineHashes[j]] = j;
-
-    for (size_t i = 0; i < counter; i++) {
-        auto it = m.find(hashes[i]);
-        if (it != m.end()) {
-            printf("COINCIDENCIA!!! hash[%zu] amb onlineHashes[%zu]\n", i, it->second);
-            return;
-        }
+  for (size_t i = 0; i < counter; i++) {
+    s.insert(onlineHashes[i]);
+  }
+  for (size_t i = 0; i < counter; i++) {
+    if (s.count(hashes[i])) {
+      printf("COINCIDENCIA!!! Hash: %llu\n", hashes[i]);
+      objectiveIndex = i;
+      objective = hashes[i];
+      return;
     }
+  }
 }
+
+bool solve (char lastMove = 255, char lastMove2 = 255) {
+  char equal = 0;
+  for (char i = 0; i < 72; i++) {
+    if (perfectLine[i]==*line[i]) equal ++;
+  }
+  if (equal == 72) return true;
+  char buffer[45];
+  for (int i = 0; i < 45; ++i) buffer[i] = *shortLine[i];
+  XXH128_hash_t h = XXH3_128bits(buffer, 45);
+  __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
+  for (int i = 0; i < counter; i++) {
+    if (hash == hashes[i]) {
+      printf("COINCIDENCIA!\n");
+      move(moves[i]);
+      solution[solutionIndex] = moves[i];
+      solutionIndex++;
+      return solve();
+    }
+  }
+  return false;
+}
+
+bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
+  char equal = 0;
+  for (char i = 0; i < 72; i++) {
+    if (perfectLine[i]==*line[i]) equal ++;
+  }
+  if (equal == 72) return true;
+  char buffer[45];
+  for (int i = 0; i < 45; ++i) buffer[i] = *shortLine[i];
+  XXH128_hash_t h = XXH3_128bits(buffer, 45);
+  __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
+  if (hash == objective) {
+    printf("COINCIDENCIA!\n");
+    move(moves[objectiveIndex]);
+    solution[solutionIndex] = moves[objectiveIndex];
+    solutionIndex++;
+    return solve();
+    }
+  char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
+  if (depth != 0) {
+    for(char i : legalMoves) {
+      if (lastMove != 255 && i == reverse[lastMove]) continue;
+
+      if (lastMove != 255 && lastMove2 != 255) {
+        if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
+      }
+
+      solution[solutionIndex] = i;
+      solutionIndex++;
+      move(i);
+
+      if (solverG2(depth-1, i, lastMove)) return true;
+
+      move(reverse[i]);
+      solutionIndex--;
+    }
+  }
+  return false;
+}
+
 
 void path () {
   for (char i = 0; i < solutionIndex; i++) {
@@ -528,10 +598,13 @@ int main () {
   savesLine();
   loadFromBinary();
   //mix(100);
+  staticSave();
   //print();
   if (solverG1Iterative()) printf("Kociemba OK\n");
-  searchG2(9);
-  finish();
   path();
-  //print();
+  searchG2(9);
+  findMiddle();
+  if (solverG2(9)) printf("LO LOGRÉ!\n");
+  path();
+  print();
 }
