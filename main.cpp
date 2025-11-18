@@ -377,7 +377,7 @@ int g2Counter = 0;
 __uint128_t* onlineHashes = new __uint128_t[47380816];
 uint8_t* onlineMoves = new uint8_t[47380816];
 
-void searchG2(char depth, char lastMove = 255, char lastMove2 = 255) {
+void searchG2(char depth=9, char lastMove = 255, char lastMove2 = 255) {
   if (depth == 0) {
     return;
   }
@@ -418,7 +418,7 @@ void findMiddle () {
   }
   for (size_t i = 0; i < counter; i++) {
     if (s.count(hashes[i])) {
-      printf("COINCIDENCIA!!! Hash: %llu\n", hashes[i]);
+      //printf("COINCIDENCIA!!! Hash: %llu\n", hashes[i]);
       objectiveIndex = i;
       objective = hashes[i];
       return;
@@ -438,7 +438,7 @@ bool solve (char lastMove = 255, char lastMove2 = 255) {
   __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
   for (int i = 0; i < counter; i++) {
     if (hash == hashes[i]) {
-      printf("COINCIDENCIA!\n");
+      //printf("COINCIDENCIA!\n");
       move(moves[i]);
       solution[solutionIndex] = moves[i];
       solutionIndex++;
@@ -448,7 +448,7 @@ bool solve (char lastMove = 255, char lastMove2 = 255) {
   return false;
 }
 
-bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
+bool solverG2(char depth=9, char lastMove = 255, char lastMove2 = 255) {
   char equal = 0;
   for (char i = 0; i < 72; i++) {
     if (perfectLine[i]==*line[i]) equal ++;
@@ -459,7 +459,7 @@ bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
   XXH128_hash_t h = XXH3_128bits(buffer, 45);
   __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
   if (hash == objective) {
-    printf("COINCIDENCIA!\n");
+    //printf("COINCIDENCIA!\n");
     move(moves[objectiveIndex]);
     solution[solutionIndex] = moves[objectiveIndex];
     solutionIndex++;
@@ -561,13 +561,13 @@ void print () {
 int main () {
   savesLine();
   loadFromBinary();
-  mix(2);
+  mix(6);
   staticSave();
   print();
   if (solverG1Iterative()) printf("Kociemba OK\n");
-  searchG2(9);
+  searchG2();
   findMiddle();
-  if (solverG2(9)) printf("SOLVED\n");
+  if (solverG2()) printf("SOLVED\n");
   path();
   print();
 }
