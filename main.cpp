@@ -51,8 +51,8 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
-char* shortLine[45];
-char staticShortLine[45];
+char* shortLine[54];
+char staticShortLine[54];
 char staticLine[12];
 char lateral[9];
 
@@ -112,7 +112,7 @@ static inline void savesLine () {
     }
   }
   k=0;
-  for (char i = 0; i < 5; i++) {
+  for (char i = 0; i < 6; i++) {
     for (char j = 0; j < 9; j++) {
       shortLine[k] = &pixels[i][j];
       k++;
@@ -234,12 +234,12 @@ static inline void move (char option) {
 void mix (int times_mixed) {
   static std::mt19937 rng(std::random_device{}());
   for (int i = 0; i < times_mixed; i++) {
-    move((uint64_t(rng()) * 12) >> 32);
+    move((uint64_t(rng()) * 16) >> 32);
   }
 }
 
 void staticSave () {
-  for (size_t i = 0; i < 45; i++) {
+  for (size_t i = 0; i < 54; i++) {
     staticShortLine[i] = *shortLine[i];
   }
 }
@@ -391,9 +391,9 @@ void searchG2(char depth=9, char lastMove = 255, char lastMove2 = 255) {
     }
 
     move(i);
-    char buffer[45];
-    for (int i = 0; i < 45; i++) buffer[i] = *shortLine[i];
-    XXH128_hash_t h = XXH3_128bits(buffer, 45);
+    char buffer[54];
+    for (int i = 0; i < 54; i++) buffer[i] = *shortLine[i];
+    XXH128_hash_t h = XXH3_128bits(buffer, 54);
     onlineHashes[g2Counter] = (__uint128_t(h.high64) << 64) | h.low64;
     onlineMoves[g2Counter] = reverse[i];
     g2Counter++;
@@ -432,9 +432,9 @@ bool solve (char lastMove = 255, char lastMove2 = 255) {
     if (perfectLine[i]==*line[i]) equal ++;
   }
   if (equal == 72) return true;
-  char buffer[45];
-  for (int i = 0; i < 45; ++i) buffer[i] = *shortLine[i];
-  XXH128_hash_t h = XXH3_128bits(buffer, 45);
+  char buffer[54];
+  for (int i = 0; i < 54; ++i) buffer[i] = *shortLine[i];
+  XXH128_hash_t h = XXH3_128bits(buffer, 54);
   __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
   for (int i = 0; i < counter; i++) {
     if (hash == hashes[i]) {
@@ -454,9 +454,9 @@ bool solverG2(char depth=9, char lastMove = 255, char lastMove2 = 255) {
     if (perfectLine[i]==*line[i]) equal ++;
   }
   if (equal == 72) return true;
-  char buffer[45];
-  for (int i = 0; i < 45; ++i) buffer[i] = *shortLine[i];
-  XXH128_hash_t h = XXH3_128bits(buffer, 45);
+  char buffer[54];
+  for (int i = 0; i < 54; ++i) buffer[i] = *shortLine[i];
+  XXH128_hash_t h = XXH3_128bits(buffer, 54);
   __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
   if (hash == objective) {
     //printf("COINCIDENCIA!\n");
