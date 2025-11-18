@@ -335,14 +335,14 @@ bool isG1() {
     return true;
 }
 
-bool solverG1(char depth, char lastMove = 255, char lastMove2 = 255) {
+bool solverG1(char depth, char lastMove = 100, char lastMove2 = 100) {
   if (isG1()) return true;
   
   if (depth != 0) {
     for(char i = 0; i < 16; i++) {
-      if (lastMove != 255 && i == reverse[lastMove]) continue;
+      if (lastMove != 100 && i == reverse[lastMove]) continue;
       
-      if (lastMove != 255 && lastMove2 != 255) {
+      if (lastMove != 100 && lastMove2 != 100) {
         if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
       }
       
@@ -377,7 +377,7 @@ int g2Counter = 0;
 __uint128_t* onlineHashes = new __uint128_t[47380816];
 uint8_t* onlineMoves = new uint8_t[47380816];
 
-void searchG2(char depth=9, char lastMove = 255, char lastMove2 = 255) {
+void searchG2(char depth=9, char lastMove = 100, char lastMove2 = 100) {
   if (depth == 0) {
     return;
   }
@@ -385,8 +385,8 @@ void searchG2(char depth=9, char lastMove = 255, char lastMove2 = 255) {
   char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
 
   for(char i : legalMoves) {
-    if (lastMove != 255 && i == reverse[lastMove]) continue;
-    if (lastMove != 255 && lastMove2 != 255) {
+    if (lastMove != 100 && i == reverse[lastMove]) continue;
+    if (lastMove != 100 && lastMove2 != 100) {
       if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
     }
 
@@ -426,7 +426,7 @@ void findMiddle () {
   }
 }
 
-bool solve (char lastMove = 255, char lastMove2 = 255) {
+bool solve () {
   char equal = 0;
   for (char i = 0; i < 72; i++) {
     if (perfectLine[i]==*line[i]) equal ++;
@@ -448,7 +448,7 @@ bool solve (char lastMove = 255, char lastMove2 = 255) {
   return false;
 }
 
-bool solverG2(char depth=9, char lastMove = 255, char lastMove2 = 255) {
+bool solverG2(char depth=9, char lastMove = 100, char lastMove2 = 100) {
   char equal = 0;
   for (char i = 0; i < 72; i++) {
     if (perfectLine[i]==*line[i]) equal ++;
@@ -468,9 +468,9 @@ bool solverG2(char depth=9, char lastMove = 255, char lastMove2 = 255) {
   char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
   if (depth != 0) {
     for(char i : legalMoves) {
-      if (lastMove != 255 && i == reverse[lastMove]) continue;
+      if (lastMove != 100 && i == reverse[lastMove]) continue;
 
-      if (lastMove != 255 && lastMove2 != 255) {
+      if (lastMove != 100 && lastMove2 != 100) {
         if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
       }
 
@@ -561,7 +561,7 @@ void print () {
 int main () {
   savesLine();
   loadFromBinary();
-  mix(6);
+  mix(9);
   staticSave();
   print();
   if (solverG1Iterative()) printf("Kociemba OK\n");
