@@ -3,6 +3,7 @@
 #include <cstring>
 #include <random>
 #include <fstream>
+#include <unordered_map>
 #define XXH_INLINE_ALL
 #include "xxhash.h"
 
@@ -51,6 +52,7 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
 char* shortLine[45];
+char staticShortLine[45];
 char staticLine[12];
 char lateral[9];
 
@@ -113,6 +115,7 @@ static inline void savesLine () {
   for (char i = 0; i < 5; i++) {
     for (char j = 0; j < 9; j++) {
       shortLine[k] = &pixels[i][j];
+      staticShortLine[k] = pixels[i][j];
       k++;
     }
   }
@@ -235,30 +238,7 @@ void mix (int times_mixed) {
     move((uint64_t(rng()) * 12) >> 32);
   }
 }
-/*
-inline bool isMS(char c1, char c2) {
-  return ((c1=='g'||c1=='b')&&(c2=='r'||c2=='o'))||
-         ((c2=='g'||c2=='b')&&(c1=='r'||c1=='o'));
-}
 
-bool isG1() {
-  return pixels[0][7]!='w'&&pixels[0][7]!='y'&&
-         pixels[0][1]!='w'&&pixels[0][1]!='y'&&
-         pixels[2][7]!='w'&&pixels[2][7]!='y'&&
-         pixels[2][1]!='w'&&pixels[2][1]!='y'&&
-         pixels[4][7]!='w'&&pixels[4][7]!='y'&&
-         pixels[4][1]!='w'&&pixels[4][1]!='y'&&
-         pixels[5][7]!='w'&&pixels[5][7]!='y'&&
-         pixels[5][1]!='w'&&pixels[5][1]!='y'&&
-         !isMS(pixels[1][5],pixels[5][7])&&
-         !isMS(pixels[1][3],pixels[4][7])&&
-         !isMS(pixels[3][5],pixels[5][1])&&
-         !isMS(pixels[3][3],pixels[4][1]);
-}
-*/
-
-// Verifica si una aresta està ben orientada
-// Una aresta està ben orientada si els colors w/y estan a les cares U/D
 bool isEdgeOriented(char face1, char pos1, char face2, char pos2) {
     char color1 = pixels[face1][pos1];
     char color2 = pixels[face2][pos2];
@@ -375,7 +355,7 @@ bool solverG1(char depth, char lastMove = 255, char lastMove2 = 255) {
 }
 
 bool solverG1Iterative() {
-  for (char depth = 1; depth <= 8; depth++) {
+  for (char depth = 1; depth <= 12; depth++) {
     if (isG1() == true) return true;
     printf("Buscando profundidad %d...\n", depth);
     if (solverG1(depth)) {
@@ -383,12 +363,10 @@ bool solverG1Iterative() {
       return true;
     }
   }
-  printf("✗ No se encontró solución hasta profundidad 5\n");
+  printf("✗ No se encontró solución hasta profundidad 12\n");
   return false;
 }
-
-bool solverG2Iterative();
-
+/*
 bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
   char equal = 0;
   for (char i = 0; i < 72; i++) {
@@ -429,17 +407,51 @@ bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
   }
   return false;
 }
+*/
+int g2Counter = 0;
 
-bool solverG2Iterative() {
-  for (char depth = 1; depth <= 9; depth++) {
-    printf("Buscando profundidad %d...\n", depth);
-    if (solverG2(depth)) {
-      printf("✓ Solución encontrada en profundidad %d\n", depth);
-      return true;
-    }
+__uint128_t* onlineHashes = new __uint128_t[47380816];
+uint8_t* onlineMoves = new uint8_t[47380816];
+
+void searchG2(char depth, char lastMove = 255, char lastMove2 = 255) {
+  if (depth == 0) {
+    return;
   }
-  printf("✗ No se encontró solución hasta profundidad 9\n");
-  return false;
+
+  char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
+
+  for(char i : legalMoves) {
+    if (lastMove != 255 && i == reverse[lastMove]) continue;
+    if (lastMove != 255 && lastMove2 != 255) {
+      if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
+    }
+
+    move(i);
+    char buffer[45];
+    for (int i = 0; i < 45; i++) buffer[i] = *shortLine[i];
+    XXH128_hash_t h = XXH3_128bits(buffer, 45);
+    onlineHashes[g2Counter] = (__uint128_t(h.high64) << 64) | h.low64;
+    onlineMoves[g2Counter] = reverse[i];
+    g2Counter++;
+    searchG2(depth-1, i, lastMove);
+    move(reverse[i]);
+  }
+}
+
+void finish () {
+    std::unordered_map<uint64_t, size_t> m; // valor -> index
+    m.reserve(counter);
+
+    for (size_t j = 0; j < counter; j++)
+        m[onlineHashes[j]] = j;
+
+    for (size_t i = 0; i < counter; i++) {
+        auto it = m.find(hashes[i]);
+        if (it != m.end()) {
+            printf("COINCIDENCIA!!! hash[%zu] amb onlineHashes[%zu]\n", i, it->second);
+            return;
+        }
+    }
 }
 
 void path () {
@@ -515,12 +527,11 @@ void print () {
 int main () {
   savesLine();
   loadFromBinary();
-  //mix(6);
-  print();
+  //mix(100);
+  //print();
   if (solverG1Iterative()) printf("Kociemba OK\n");
+  searchG2(9);
+  finish();
   path();
-  print();
-  if (solverG2(8)) printf("All OK\n");
-  path();
-  print();
+  //print();
 }
