@@ -335,10 +335,29 @@ bool isG1() {
     return true;
 }
 
+int heuristicEdges() {
+    int count = 0;
+    // comprova totes les 12 arestes
+    if (!isEdgeOriented(1, 1, 0, 1)) count++; // U-F
+    if (!isEdgeOriented(1, 3, 4, 1)) count++; // U-L
+    if (!isEdgeOriented(1, 5, 5, 1)) count++; // U-R
+    if (!isEdgeOriented(1, 7, 2, 1)) count++; // U-B
+    if (!isEdgeOriented(3, 1, 0, 7)) count++; // D-F
+    if (!isEdgeOriented(3, 3, 4, 7)) count++; // D-L
+    if (!isEdgeOriented(3, 5, 5, 7)) count++; // D-R
+    if (!isEdgeOriented(3, 7, 2, 7)) count++; // D-B
+    if (!isEdgeOriented(0, 3, 4, 5)) count++; // F-L
+    if (!isEdgeOriented(0, 5, 5, 3)) count++; // F-R
+    if (!isEdgeOriented(2, 3, 5, 5)) count++; // B-R
+    if (!isEdgeOriented(2, 5, 4, 3)) count++; // B-L
+
+    return (count + 3) / 4; // ceil(count/4)
+}
+
 bool solverG1(char depth, char lastMove = 100, char lastMove2 = 100) {
   if (isG1()) return true;
   
-  if (depth != 0) {
+  if (depth != 0 && depth > heuristicEdges()) {
     for(char i = 0; i < 16; i++) {
       if (lastMove != 100 && i == reverse[lastMove]) continue;
       
@@ -361,7 +380,8 @@ bool solverG1(char depth, char lastMove = 100, char lastMove2 = 100) {
 }
 
 bool solverG1Iterative() {
-  for (char depth = 1; depth <= 12; depth++) {
+  int h = heuristicEdges()+5;
+  for (char depth = h; depth <= 12; depth++) {
     if (isG1() == true) return true;
     printf("Buscando profundidad %d...\n", depth);
     if (solverG1(depth)) {
@@ -562,7 +582,7 @@ void print () {
 int main () {
   savesLine();
   loadFromBinary();
-  mix(9);
+  mix(8);
   staticSave();
   print();
   if (solverG1Iterative()) printf("Kociemba OK\n");
