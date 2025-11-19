@@ -345,7 +345,8 @@ bool solverG1(char depth, char lastMove = 100, char lastMove2 = 100) {
       if (lastMove != 100 && lastMove2 != 100) {
         if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
       }
-      
+      if ((i < 4 && i > 7) && i == lastMove) continue;
+
       solution[solutionIndex] = i;
       solutionIndex++;
       move(i);
@@ -389,7 +390,7 @@ void searchG2(char depth=9, char lastMove = 100, char lastMove2 = 100) {
     if (lastMove != 100 && lastMove2 != 100) {
       if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
     }
-
+    if ((i < 4 && i > 7) && i == lastMove) continue;
     move(i);
     char buffer[54];
     for (int i = 0; i < 54; i++) buffer[i] = *shortLine[i];
