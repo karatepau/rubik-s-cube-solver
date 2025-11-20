@@ -381,8 +381,8 @@ bool solverG1(char depth, char lastMove = 100, char lastMove2 = 100) {
 }
 
 bool solverG1Iterative() {
-  int h = heuristicEdges()+5;
-  for (char depth = h; depth <= 12; depth++) {
+  //int h = heuristicEdges()+5;
+  for (char depth = 0; depth <= 12; depth++) {
     if (isG1() == true) return true;
     printf("Buscando profundidad %d...\n", depth);
     if (solverG1(depth)) {
