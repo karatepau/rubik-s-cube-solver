@@ -4,6 +4,7 @@
 #include <random>
 #include <fstream>
 #include <unordered_set>
+#include <omp.h>
 #define XXH_INLINE_ALL
 #include "xxhash.h"
 
@@ -437,36 +438,43 @@ void findMiddle () {
   for (size_t i = 0; i < counter; i++) {
     s.insert(onlineHashes[i]);
   }
+  #pragma omp parallel for
   for (size_t i = 0; i < counter; i++) {
     if (s.count(hashes[i])) {
+      #pragma omp critical
       //printf("COINCIDENCIA!!! Hash: %llu\n", hashes[i]);
       objectiveIndex = i;
       objective = hashes[i];
-      return;
     }
   }
 }
 
 bool solve () {
+  bool found = false;
   char equal = 0;
-  for (char i = 0; i < 72; i++) {
-    if (perfectLine[i]==*line[i]) equal ++;
-  }
-  if (equal == 72) return true;
-  char buffer[54];
-  for (int i = 0; i < 54; ++i) buffer[i] = *shortLine[i];
-  XXH128_hash_t h = XXH3_128bits(buffer, 54);
-  __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
-  for (int i = 0; i < counter; i++) {
-    if (hash == hashes[i]) {
-      //printf("COINCIDENCIA!\n");
-      move(moves[i]);
-      solution[solutionIndex] = moves[i];
-      solutionIndex++;
-      return solve();
+  while (equal!=72 && !found) {
+    for (char i = 0; i < 72; i++) {
+      if (perfectLine[i]==*line[i]) equal ++;
+    }
+    if (equal == 72) return true;
+    char buffer[54];
+    for (int i = 0; i < 54; ++i) buffer[i] = *shortLine[i];
+    XXH128_hash_t h = XXH3_128bits(buffer, 54);
+    __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
+  
+    #pragma omp parallel for
+    for (int i = 0; i < counter; i++) {
+      if (hash == hashes[i]) {
+        #pragma omp critical
+        //printf("COINCIDENCIA!\n");
+        move(moves[i]);
+        solution[solutionIndex] = moves[i];
+        solutionIndex++;
+        found = true;
+      }
     }
   }
-  return false;
+  return true;
 }
 
 bool solverG2(char depth=9, char lastMove = 100, char lastMove2 = 100) {

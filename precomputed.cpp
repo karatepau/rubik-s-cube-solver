@@ -217,7 +217,7 @@ long long counter = 0;
 __uint128_t* hashes = new __uint128_t[47380816];
 uint8_t* moves = new uint8_t[47380816];
 
-void search(char depth, char lastMove = 255, char lastMove2 = 255) {
+void search(char depth, char lastMove = 100, char lastMove2 = 100) {
   if (depth == 0) {
     return;
   }
@@ -225,8 +225,8 @@ void search(char depth, char lastMove = 255, char lastMove2 = 255) {
   char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
   
   for(char i : legalMoves) {
-    if (lastMove != 255 && i == reverse[lastMove]) continue;
-    if (lastMove != 255 && lastMove2 != 255) {
+    if (lastMove != 100 && i == reverse[lastMove]) continue;
+    if (lastMove != 100 && lastMove2 != 100) {
       if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
     }
     if ((i < 4 && i > 7) && i == lastMove) continue;   
