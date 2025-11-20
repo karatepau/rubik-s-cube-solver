@@ -358,7 +358,7 @@ int heuristicEdges() {
 bool solverG1(char depth, char lastMove = 100, char lastMove2 = 100) {
   if (isG1()) return true;
   
-  if (depth != 0 && depth > heuristicEdges()) {
+  if (depth != 0 && depth >= heuristicEdges()) {
     for(char i = 0; i < 16; i++) {
       if (lastMove != 100 && i == reverse[lastMove]) continue;
       
