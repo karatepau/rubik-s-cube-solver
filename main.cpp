@@ -5,9 +5,13 @@
 #include <fstream>
 #include <unordered_set>
 #include <omp.h>
+#include <thread>
 #define XXH_INLINE_ALL
 #include "xxhash.h"
+#include <ctime>
 
+#define START_TIMER { auto start = clock();
+#define END_TIMER(name) printf("%s: %.2f ms\n", name, (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
   {'g', 'g', 'g',
@@ -399,7 +403,11 @@ __uint128_t* onlineHashes = new __uint128_t[47380816];
 uint8_t* onlineMoves = new uint8_t[47380816];
 
 void searchG2(char depth=9, char lastMove = 100, char lastMove2 = 100) {
-  if (depth == 0) {
+  char equal = 0;
+  for (char i = 0; i < 72; i++) {
+    if (perfectLine[i]==*line[i]) equal ++;
+  }
+  if (depth == 0 || equal==72) {
     return;
   }
 
@@ -451,6 +459,9 @@ void findMiddle () {
 bool solve () {
   bool found = false;
   char equal = 0;
+  for (char i = 0; i < 72; i++) {
+    if (perfectLine[i]==*line[i]) equal ++;
+  }
   while (equal!=72 && !found) {
     for (char i = 0; i < 72; i++) {
       if (perfectLine[i]==*line[i]) equal ++;
@@ -585,7 +596,7 @@ void print () {
     printf("\n");
   }
 }
-
+/*
 int main () {
   savesLine();
   loadFromBinary();
@@ -598,4 +609,47 @@ int main () {
   if (solverG2()) printf("SOLVED\n");
   path();
   print();
+}
+*/
+
+int main () {
+  savesLine();
+  
+  std::thread t1([]{ 
+    auto start = clock();
+    loadFromBinary();
+    printf("loadFromBinary: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); 
+  });
+  
+  { auto start = clock();
+  mix(8);
+  printf("mix: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
+  
+  staticSave();
+  
+  { auto start = clock();
+  if (solverG1Iterative()) printf("Kociemba OK\n");
+  printf("solverG1Iterative: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
+  
+  t1.join();
+  
+  { auto start = clock();
+  searchG2();
+  printf("searchG2: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
+  
+  { auto start = clock();
+  findMiddle();
+  printf("findMiddle: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
+  
+  { auto start = clock();
+  if (solverG2()) printf("SOLVED\n");
+  printf("solverG2: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
+  
+  { auto start = clock();
+  path();
+  printf("path: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
+  
+  { auto start = clock();
+  print();
+  printf("print: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
 }
