@@ -4,14 +4,9 @@
 #include <random>
 #include <fstream>
 #include <unordered_set>
-#include <omp.h>
-#include <thread>
 #define XXH_INLINE_ALL
 #include "xxhash.h"
-#include <ctime>
 
-#define START_TIMER { auto start = clock();
-#define END_TIMER(name) printf("%s: %.2f ms\n", name, (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
 //3d cube represented with a 2d matrix, 6 faces with 9 colors/pixels inside each of one
 alignas(64) char pixels[6][9]={
   {'g', 'g', 'g',
@@ -56,8 +51,8 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
-char* shortLine[54];
-char staticShortLine[54];
+char* shortLine[45];
+char staticShortLine[45];
 char staticLine[12];
 char lateral[9];
 
@@ -117,7 +112,7 @@ static inline void savesLine () {
     }
   }
   k=0;
-  for (char i = 0; i < 6; i++) {
+  for (char i = 0; i < 5; i++) {
     for (char j = 0; j < 9; j++) {
       shortLine[k] = &pixels[i][j];
       k++;
@@ -239,12 +234,12 @@ static inline void move (char option) {
 void mix (int times_mixed) {
   static std::mt19937 rng(std::random_device{}());
   for (int i = 0; i < times_mixed; i++) {
-    move((uint64_t(rng()) * 16) >> 32);
+    move((uint64_t(rng()) * 12) >> 32);
   }
 }
 
 void staticSave () {
-  for (size_t i = 0; i < 54; i++) {
+  for (size_t i = 0; i < 45; i++) {
     staticShortLine[i] = *shortLine[i];
   }
 }
@@ -340,37 +335,17 @@ bool isG1() {
     return true;
 }
 
-int heuristicEdges() {
-    int count = 0;
-    // comprova totes les 12 arestes
-    if (!isEdgeOriented(1, 1, 0, 1)) count++; // U-F
-    if (!isEdgeOriented(1, 3, 4, 1)) count++; // U-L
-    if (!isEdgeOriented(1, 5, 5, 1)) count++; // U-R
-    if (!isEdgeOriented(1, 7, 2, 1)) count++; // U-B
-    if (!isEdgeOriented(3, 1, 0, 7)) count++; // D-F
-    if (!isEdgeOriented(3, 3, 4, 7)) count++; // D-L
-    if (!isEdgeOriented(3, 5, 5, 7)) count++; // D-R
-    if (!isEdgeOriented(3, 7, 2, 7)) count++; // D-B
-    if (!isEdgeOriented(0, 3, 4, 5)) count++; // F-L
-    if (!isEdgeOriented(0, 5, 5, 3)) count++; // F-R
-    if (!isEdgeOriented(2, 3, 5, 5)) count++; // B-R
-    if (!isEdgeOriented(2, 5, 4, 3)) count++; // B-L
-
-    return (count + 3) / 4; // ceil(count/4)
-}
-
-bool solverG1(char depth, char lastMove = 100, char lastMove2 = 100) {
+bool solverG1(char depth, char lastMove = 255, char lastMove2 = 255) {
   if (isG1()) return true;
   
-  if (depth != 0 && depth >= heuristicEdges()) {
+  if (depth != 0) {
     for(char i = 0; i < 16; i++) {
-      if (lastMove != 100 && i == reverse[lastMove]) continue;
+      if (lastMove != 255 && i == reverse[lastMove]) continue;
       
-      if (lastMove != 100 && lastMove2 != 100) {
+      if (lastMove != 255 && lastMove2 != 255) {
         if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
       }
-      if ((i < 4 && i > 7) && i == lastMove) continue;
-
+      
       solution[solutionIndex] = i;
       solutionIndex++;
       move(i);
@@ -385,7 +360,7 @@ bool solverG1(char depth, char lastMove = 100, char lastMove2 = 100) {
 }
 
 bool solverG1Iterative() {
-  for (char depth = 0; depth <= 12; depth++) {
+  for (char depth = 1; depth <= 12; depth++) {
     if (isG1() == true) return true;
     printf("Buscando profundidad %d...\n", depth);
     if (solverG1(depth)) {
@@ -402,27 +377,23 @@ int g2Counter = 0;
 __uint128_t* onlineHashes = new __uint128_t[47380816];
 uint8_t* onlineMoves = new uint8_t[47380816];
 
-void searchG2(char depth=9, char lastMove = 100, char lastMove2 = 100) {
-  char equal = 0;
-  for (char i = 0; i < 72; i++) {
-    if (perfectLine[i]==*line[i]) equal ++;
-  }
-  if (depth == 0 || equal==72) {
+void searchG2(char depth, char lastMove = 255, char lastMove2 = 255) {
+  if (depth == 0) {
     return;
   }
 
   char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
 
   for(char i : legalMoves) {
-    if (lastMove != 100 && i == reverse[lastMove]) continue;
-    if (lastMove != 100 && lastMove2 != 100) {
+    if (lastMove != 255 && i == reverse[lastMove]) continue;
+    if (lastMove != 255 && lastMove2 != 255) {
       if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
     }
-    if ((i < 4 && i > 7) && i == lastMove) continue;
+
     move(i);
-    char buffer[54];
-    for (int i = 0; i < 54; i++) buffer[i] = *shortLine[i];
-    XXH128_hash_t h = XXH3_128bits(buffer, 54);
+    char buffer[45];
+    for (int i = 0; i < 45; i++) buffer[i] = *shortLine[i];
+    XXH128_hash_t h = XXH3_128bits(buffer, 45);
     onlineHashes[g2Counter] = (__uint128_t(h.high64) << 64) | h.low64;
     onlineMoves[g2Counter] = reverse[i];
     g2Counter++;
@@ -445,60 +416,50 @@ void findMiddle () {
   for (size_t i = 0; i < counter; i++) {
     s.insert(onlineHashes[i]);
   }
-  #pragma omp parallel for
   for (size_t i = 0; i < counter; i++) {
     if (s.count(hashes[i])) {
-      #pragma omp critical
-      //printf("COINCIDENCIA!!! Hash: %llu\n", hashes[i]);
+      printf("COINCIDENCIA!!! Hash: %llu\n", hashes[i]);
       objectiveIndex = i;
       objective = hashes[i];
+      return;
     }
   }
 }
 
-bool solve () {
-  bool found = false;
-  char equal = 0;
-  for (char i = 0; i < 72; i++) {
-    if (perfectLine[i]==*line[i]) equal ++;
-  }
-  while (equal!=72 && !found) {
-    for (char i = 0; i < 72; i++) {
-      if (perfectLine[i]==*line[i]) equal ++;
-    }
-    if (equal == 72) return true;
-    char buffer[54];
-    for (int i = 0; i < 54; ++i) buffer[i] = *shortLine[i];
-    XXH128_hash_t h = XXH3_128bits(buffer, 54);
-    __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
-  
-    #pragma omp parallel for
-    for (int i = 0; i < counter; i++) {
-      if (hash == hashes[i]) {
-        #pragma omp critical
-        //printf("COINCIDENCIA!\n");
-        move(moves[i]);
-        solution[solutionIndex] = moves[i];
-        solutionIndex++;
-        found = true;
-      }
-    }
-  }
-  return true;
-}
-
-bool solverG2(char depth=9, char lastMove = 100, char lastMove2 = 100) {
+bool solve (char lastMove = 255, char lastMove2 = 255) {
   char equal = 0;
   for (char i = 0; i < 72; i++) {
     if (perfectLine[i]==*line[i]) equal ++;
   }
   if (equal == 72) return true;
-  char buffer[54];
-  for (int i = 0; i < 54; ++i) buffer[i] = *shortLine[i];
-  XXH128_hash_t h = XXH3_128bits(buffer, 54);
+  char buffer[45];
+  for (int i = 0; i < 45; ++i) buffer[i] = *shortLine[i];
+  XXH128_hash_t h = XXH3_128bits(buffer, 45);
+  __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
+  for (int i = 0; i < counter; i++) {
+    if (hash == hashes[i]) {
+      printf("COINCIDENCIA!\n");
+      move(moves[i]);
+      solution[solutionIndex] = moves[i];
+      solutionIndex++;
+      return solve();
+    }
+  }
+  return false;
+}
+
+bool solverG2(char depth, char lastMove = 255, char lastMove2 = 255) {
+  char equal = 0;
+  for (char i = 0; i < 72; i++) {
+    if (perfectLine[i]==*line[i]) equal ++;
+  }
+  if (equal == 72) return true;
+  char buffer[45];
+  for (int i = 0; i < 45; ++i) buffer[i] = *shortLine[i];
+  XXH128_hash_t h = XXH3_128bits(buffer, 45);
   __uint128_t hash = (__uint128_t(h.high64) << 64) | h.low64;
   if (hash == objective) {
-    //printf("COINCIDENCIA!\n");
+    printf("COINCIDENCIA!\n");
     move(moves[objectiveIndex]);
     solution[solutionIndex] = moves[objectiveIndex];
     solutionIndex++;
@@ -507,9 +468,9 @@ bool solverG2(char depth=9, char lastMove = 100, char lastMove2 = 100) {
   char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
   if (depth != 0) {
     for(char i : legalMoves) {
-      if (lastMove != 100 && i == reverse[lastMove]) continue;
+      if (lastMove != 255 && i == reverse[lastMove]) continue;
 
-      if (lastMove != 100 && lastMove2 != 100) {
+      if (lastMove != 255 && lastMove2 != 255) {
         if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
       }
 
@@ -596,60 +557,17 @@ void print () {
     printf("\n");
   }
 }
-/*
-int main () {
-  savesLine();
-  loadFromBinary();
-  mix(8);
-  staticSave();
-  print();
-  if (solverG1Iterative()) printf("Kociemba OK\n");
-  searchG2();
-  findMiddle();
-  if (solverG2()) printf("SOLVED\n");
-  path();
-  print();
-}
-*/
 
 int main () {
   savesLine();
-  
-  std::thread t1([]{ 
-    auto start = clock();
-    loadFromBinary();
-    printf("loadFromBinary: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); 
-  });
-  
-  { auto start = clock();
+  loadFromBinary();
   mix(10);
-  printf("mix: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
-  
   staticSave();
-  
-  { auto start = clock();
-  if (solverG1Iterative()) printf("Kociemba OK\n");
-  printf("solverG1Iterative: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
-  
-  t1.join();
-  
-  { auto start = clock();
-  searchG2();
-  printf("searchG2: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
-  
-  { auto start = clock();
-  findMiddle();
-  printf("findMiddle: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
-  
-  { auto start = clock();
-  if (solverG2()) printf("SOLVED\n");
-  printf("solverG2: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
-  
-  { auto start = clock();
-  path();
-  printf("path: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
-  
-  { auto start = clock();
   print();
-  printf("print: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
+  if (solverG1Iterative()) printf("Kociemba OK\n");
+  searchG2(9);
+  findMiddle();
+  if (solverG2(9)) printf("SOLVED\n");
+  path();
+  print();
 }
