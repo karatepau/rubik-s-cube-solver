@@ -622,7 +622,7 @@ int main () {
   });
   
   { auto start = clock();
-  mix(8);
+  mix(10);
   printf("mix: %.2f ms\n", (double)(clock() - start) / CLOCKS_PER_SEC * 1000); }
   
   staticSave();
