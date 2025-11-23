@@ -51,7 +51,7 @@ enum movements : uint8_t {  // 1 byte en vez de 4
 
 //Save of all the lines (edges+corners), his static copy (the same but without being a pointer) and a copy for sides
 char* line[72];
-char* shortLine[45];
+char* shortLine[54];
 char staticLine[12];
 char lateral[9];
 
@@ -111,7 +111,7 @@ static inline void savesLine () {
     }
   }
   k=0;
-  for (char i = 0; i < 5; i++) {
+  for (char i = 0; i < 6; i++) {
     for (char j = 0; j < 9; j++) {
       shortLine[k] = &pixels[i][j];
       k++;
@@ -208,7 +208,7 @@ static inline void move (char option) {
 void mix (int times_mixed) {
   static std::mt19937 rng(std::random_device{}());
   for (int i = 0; i < times_mixed; i++) {
-    move((uint64_t(rng()) * 12) >> 32);
+    move((uint64_t(rng()) * 16) >> 32);
   }
 }
 
@@ -217,7 +217,7 @@ long long counter = 0;
 __uint128_t* hashes = new __uint128_t[47380816];
 uint8_t* moves = new uint8_t[47380816];
 
-void search(char depth, char lastMove = 255, char lastMove2 = 255) {
+void search(char depth, char lastMove = 100, char lastMove2 = 100) {
   if (depth == 0) {
     return;
   }
@@ -225,15 +225,15 @@ void search(char depth, char lastMove = 255, char lastMove2 = 255) {
   char legalMoves[8] = {4, 5, 6, 7, 12, 13, 14, 15};
   
   for(char i : legalMoves) {
-    if (lastMove != 255 && i == reverse[lastMove]) continue;
-    if (lastMove != 255 && lastMove2 != 255) {
+    if (lastMove != 100 && i == reverse[lastMove]) continue;
+    if (lastMove != 100 && lastMove2 != 100) {
       if (i/2 == lastMove/2 && lastMove/2 == lastMove2/2) continue;
     }
-    
+    if ((i < 4 && i > 7) && i == lastMove) continue;   
     move(i);
-    char buffer[45];
-    for (int i = 0; i < 45; i++) buffer[i] = *shortLine[i];
-    XXH128_hash_t h = XXH3_128bits(buffer, 45);
+    char buffer[54];
+    for (int i = 0; i < 54; i++) buffer[i] = *shortLine[i];
+    XXH128_hash_t h = XXH3_128bits(buffer, 54);
     hashes[counter] = (__uint128_t(h.high64) << 64) | h.low64;
     moves[counter] = reverse[i];
     counter++;
